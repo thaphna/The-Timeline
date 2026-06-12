@@ -77,6 +77,7 @@
   .track{
     position:relative;
     height:380px;
+    min-width:min(640px, 86vw);
     display:flex;
     align-items:center;
     margin:0 auto;
@@ -107,7 +108,7 @@
   }
 
   /* ---------- nodes ---------- */
-  .node{position:absolute;top:50%}
+  .node{position:absolute;left:var(--p);top:50%}
   .node .dot,
   .node .stem,
   .node .label{
@@ -219,10 +220,70 @@
     text-align:center;
   }
 
+  /* ---------- phones: the line stands vertical, origin at top ---------- */
   @media (max-width:600px){
-    .track{height:340px}
-    .panel{width:228px}
     .langs{top:14px;right:16px}
+    .stage{overflow:visible}
+    .track{
+      min-width:0;
+      width:10px;
+      height:min(62vh, 560px);
+      margin:8px auto 0;
+    }
+    .line{
+      left:50%;right:auto;top:0;bottom:0;
+      width:2px;height:auto;
+      margin-left:-1px;
+      transform-origin:center top;
+    }
+    @keyframes draw{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+    .line::after{          /* arrowhead points down, toward the present */
+      right:auto;top:auto;
+      bottom:0;left:50%;
+      border-top:none;border-right:none;
+      border-left:2px solid var(--ink);
+      border-bottom:2px solid var(--ink);
+      transform:translateX(-50%) rotate(-45deg);
+    }
+
+    .node{left:50%;top:var(--p)}
+
+    .node.above .stem,
+    .node.below .stem{
+      width:26px;height:1.5px;
+      top:-0.75px;
+    }
+    .node.above .stem{left:-34px}
+    .node.below .stem{left:8px}
+
+    .label{width:34vw}
+    .node.above .label,
+    .node.below .label{
+      top:0;bottom:auto;
+      transform:translateY(-50%);
+    }
+    .node.above .label{right:42px;left:auto;text-align:right}
+    .node.below .label{left:42px;right:auto;text-align:left}
+
+    .panel{
+      width:40vw;
+      max-width:200px;
+      padding:11px 13px;
+    }
+    .panel.top{
+      right:20px;left:auto;
+      top:0;bottom:auto;
+      transform:translateY(-50%) translateX(4px);
+    }
+    .panel.bottom{
+      left:20px;right:auto;
+      top:0;bottom:auto;
+      transform:translateY(-50%) translateX(-4px);
+    }
+    .node.open .panel.top,
+    .node.open .panel.bottom{transform:translateY(-50%) translateX(0)}
+    .panel h3{font-size:14px}
+    .panel p{font-size:12px}
   }
 </style>
 </head>
@@ -346,8 +407,6 @@ const track = document.getElementById('track');
 const stage = document.getElementById('stage');
 const hint  = document.getElementById('hint');
 
-track.style.minWidth = 'min(640px, 86vw)';
-
 function esc(s){
   return String(s ?? '').replace(/[&<>"']/g, c =>
     ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -367,7 +426,7 @@ function build(lang){
     const [year, title, detail] = ev;
     const node = document.createElement('div');
     node.className = 'node ' + (i % 2 === 0 ? 'above' : 'below');
-    node.style.left = (5 + i * (90 / (t.events.length - 1))) + '%';
+    node.style.setProperty('--p', (5 + i * (90 / (t.events.length - 1))) + '%');
     node.innerHTML =
       '<span class="stem"></span>' +
       '<button class="dot" aria-expanded="false" aria-label="' + esc(year + ' \u2014 ' + title) + '"></button>' +
@@ -407,22 +466,34 @@ build('en');
 
 /* hover peek: surface the event whose dot is directly under the cursor.
    Tracked on the stage (not the line) so the peeked dot doesn't steal
-   the hover and flicker. */
+   the hover and flicker. Works for both the horizontal (desktop) and
+   vertical (phone) line. */
 const nodes = () => track.querySelectorAll('.node');
+const isVertical = () => matchMedia('(max-width:600px)').matches;
 function clearPeek(){
   track.querySelectorAll('.node.peek').forEach(n => n.classList.remove('peek'));
 }
-stage.addEventListener('mousemove', e => {
+function findHit(clientX, clientY, slack){
   const rect = track.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - (rect.top + rect.height / 2);   // distance from the line
-  const HIT = 9;   // px — the cursor must be on the dot itself, not just near it
-  let hit = null;
-  if(Math.abs(y) <= 16){
-    nodes().forEach(n => {
-      if(Math.abs(n.offsetLeft - x) <= HIT) hit = n;
-    });
+  let along, cross, pos;
+  if(isVertical()){
+    along = clientY - rect.top;
+    cross = clientX - (rect.left + rect.width / 2);
+    pos = n => n.offsetTop;
+  }else{
+    along = clientX - rect.left;
+    cross = clientY - (rect.top + rect.height / 2);
+    pos = n => n.offsetLeft;
   }
+  if(Math.abs(cross) > 18) return null;
+  let hit = null;
+  nodes().forEach(n => {
+    if(Math.abs(pos(n) - along) <= slack) hit = n;
+  });
+  return hit;
+}
+stage.addEventListener('mousemove', e => {
+  const hit = findHit(e.clientX, e.clientY, 9);  // the cursor must be on the dot itself
   clearPeek();
   if(hit) hit.classList.add('peek');
 });
@@ -430,17 +501,30 @@ stage.addEventListener('mouseleave', clearPeek);
 
 /* tap fallback: on touch screens there's no hover, so a tap on a dot's
    position along the line opens that event directly */
+let suppressClose = false;
 stage.addEventListener('click', e => {
   if(e.target.closest('.dot,.panel,.label')) return;
-  const rect = track.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - (rect.top + rect.height / 2);
-  if(Math.abs(y) > 18) return;
-  let hit = null;
-  nodes().forEach(n => {
-    if(Math.abs(n.offsetLeft - x) <= 12) hit = n;
+  const hit = findHit(e.clientX, e.clientY, 14);  // slightly wider for fingers
+  if(hit){
+    suppressClose = true;          // don't let the click-away handler undo this
+    hit.querySelector('.dot').click();
+  }
+});
+
+/* click-away: tapping empty space anywhere returns the line to normal */
+function closeAll(){
+  track.querySelectorAll('.node.open').forEach(n => {
+    n.classList.remove('open');
+    n.querySelector('.dot').setAttribute('aria-expanded','false');
   });
-  if(hit) hit.querySelector('.dot').click();
+}
+document.addEventListener('click', e => {
+  if(suppressClose){ suppressClose = false; return; }
+  if(e.target.closest('.dot,.panel,.label,.langs')) return;
+  closeAll();
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeAll();
 });
 </script>
 </body>

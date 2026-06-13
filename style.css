@@ -349,3 +349,11 @@
     .panel h3{font-size:14px}
     .panel p{font-size:12px}
   }
+
+  .credit{
+    padding:8px 0 16px;
+    text-align:center;
+    font-size:11px;
+    letter-spacing:.08em;
+    color:#C0C0C0;
+}

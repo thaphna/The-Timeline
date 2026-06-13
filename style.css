@@ -1,0 +1,351 @@
+:root{
+    --bg:#FFFFFF;
+    --ink:#111111;
+    --gray:#8A8A8A;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,
+      'Noto Sans Khmer','Khmer Sangam MN','Khmer UI','Khmer OS',sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  /* ============================================================
+     FONT PER LANGUAGE — edit these three rules.
+     Put your preferred font first; the rest are fallbacks.
+     ============================================================ */
+  html[lang="en"] body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  }
+  html[lang="zh"] body{
+    font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC',sans-serif;
+  }
+  html[lang="km"] body{
+    font-family:'Khmer Sangam MN','Noto Sans Khmer','Khmer UI','Khmer OS',sans-serif;
+  }
+  /* ============================================================ */
+  /* Khmer script is taller; give it room to breathe */
+  html[lang="km"] .summary{line-height:1.9}
+  html[lang="km"] .panel p{line-height:1.9}
+  html[lang="km"] .label .title{font-size:12px;line-height:1.6}
+
+  /* ---------- language switch ---------- */
+  .langs{
+    position:absolute;
+    top:18px;right:22px;
+    display:flex;
+    gap:14px;
+  }
+  .langs button{
+    background:none;
+    border:none;
+    font:inherit;
+    font-size:13px;
+    color:#C0C0C0;
+    cursor:pointer;
+    padding:2px 0;
+  }
+  .langs button:hover{color:var(--gray)}
+  .langs button.active{color:var(--ink);font-weight:600}
+  .langs button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+  /* ---------- top ---------- */
+  h1{
+    font-size:26px;
+    font-weight:500;
+    margin-top:clamp(40px,9vh,90px);
+    letter-spacing:.01em;
+  }
+  .summary{
+    margin-top:10px;
+    max-width:52ch;
+    padding:0 20px;
+    text-align:center;
+    font-size:13.5px;
+    line-height:1.55;
+    color:var(--gray);
+  }
+
+  /* ---------- the line ---------- */
+  .stage{
+    flex:1;
+    width:100%;
+    display:flex;
+    align-items:center;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scrollbar-width:none;
+  }
+  .stage::-webkit-scrollbar{display:none}
+  .track{
+    position:relative;
+    height:380px;
+    min-width:min(640px, 86vw);
+    display:flex;
+    align-items:center;
+    margin:0 auto;
+  }
+  .line{
+    position:absolute;
+    left:0;right:0;
+    top:50%;
+    height:2px;
+    background:var(--ink);
+    transform-origin:left center;
+    animation:draw .9s ease both;
+  }
+  .line::after{          /* arrowhead: the line points toward the present */
+    content:"";
+    position:absolute;
+    right:0;
+    top:50%;
+    width:9px;height:9px;
+    border-top:2px solid var(--ink);
+    border-right:2px solid var(--ink);
+    transform:translateY(-50%) rotate(45deg);
+  }
+  @keyframes draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  @media (prefers-reduced-motion:reduce){
+    .line{animation:none}
+    *{transition:none !important}
+  }
+
+  /* ---------- nodes ---------- */
+  .node{position:absolute;left:var(--p);top:50%}
+  .node .dot,
+  .node .stem,
+  .node .label{
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .45s ease, background .15s;
+  }
+  /* hover peek: only the event directly under the cursor surfaces */
+  .node.peek .dot{
+    opacity:.9;
+    pointer-events:auto;   /* clicking the dot opens its info; the line stays as it is */
+  }
+  .node.peek .label{
+    opacity:1;
+    pointer-events:none;
+  }
+  .node.peek .stem{
+    opacity:.3;
+    pointer-events:none;
+  }
+  .dot{
+    position:absolute;
+    top:-5px;left:-5px;
+    width:10px;height:10px;
+    border-radius:50%;
+    background:var(--ink);
+    border:2px solid var(--ink);
+    cursor:pointer;
+    transition:background .15s;
+  }
+  .dot:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+  .node.open .dot{background:var(--bg)}
+
+  .stem{
+    position:absolute;
+    left:-0.75px;
+    width:1.5px;
+    background:var(--ink);
+    opacity:.45;
+  }
+  .node.above .stem{top:-34px;height:26px}
+  .node.below .stem{top:8px;height:26px}
+
+  .label{
+    position:absolute;
+    left:0;
+    transform:translateX(-50%);
+    width:150px;
+    text-align:center;
+    cursor:pointer;
+  }
+  .node.above .label{bottom:40px}
+  .node.below .label{top:40px}
+  .label .year{
+    display:block;
+    font-size:10.5px;
+    color:var(--gray);
+    margin-bottom:1px;
+  }
+  .label .title{
+    display:block;
+    font-size:12.5px;
+    line-height:1.3;
+    color:var(--ink);
+  }
+  .label:hover .title{text-decoration:underline}
+
+  .panel{
+    position:absolute;
+    left:0;
+    background:var(--bg);
+    border:1.5px solid var(--ink);
+    border-radius:14px;
+    padding:13px 16px;
+    width:280px;
+    opacity:0;
+    pointer-events:none;
+    transform:translateX(-50%);
+    transition:opacity .18s,transform .18s;
+    z-index:5;
+    cursor:pointer;
+  }
+  .panel.top{                 /* borderless container: text box + image box side by side */
+    bottom:16px;
+    width:auto;
+    max-width:none;
+    background:none;
+    border:none;
+    border-radius:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;    /* text box on top, image box below it, above the line */
+    align-items:stretch;
+    gap:12px;
+    transform:translateX(-50%) translateY(4px);
+  }
+  .tbox,.ibox{
+    width:210px;
+    border:1.5px solid var(--ink);
+    border-radius:14px;
+    background:var(--bg);
+  }
+  .tbox{
+    padding:13px 16px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .ibox{
+    padding:0;
+    border:none;
+  }
+  .ibox .imglink{
+    display:block;
+    cursor:pointer;
+  }
+  .ibox .imglink:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .ibox .imglink .photo{transition:opacity .15s}
+  .ibox .imglink:hover .photo{opacity:.85}
+  .ibox .photo{
+    display:block;
+    width:100%;
+    height:140px;
+    object-fit:cover;
+    border-radius:8px;
+  }
+  .panel.bottom{              /* hangs just below the line */
+    top:16px;
+    transform:translateX(-50%) translateY(-4px);
+  }
+  .node.open .panel{
+    opacity:1;
+    pointer-events:auto;
+    transform:translateX(-50%) translateY(0);
+  }
+  /* an open event stays visible even when the rest of the line is empty */
+  .node.open .dot{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .panel .y{font-size:12px;color:var(--gray);margin-bottom:3px}
+  .panel h3{font-size:15px;font-weight:600;line-height:1.35}
+  .panel p{font-size:12.5px;line-height:1.55;color:#444}
+  .panel .more{
+    display:inline-block;
+    margin-top:9px;
+    font-size:12px;
+    color:var(--ink);
+    text-decoration:none;
+    border-bottom:1px solid var(--ink);
+    padding-bottom:1px;
+    cursor:pointer;
+  }
+  .panel .more:hover{color:var(--gray);border-color:var(--gray)}
+
+  .hint{
+    padding:18px;
+    font-size:12px;
+    color:#C0C0C0;
+    text-align:center;
+  }
+
+  /* ---------- phones: the line stands vertical, origin at top ---------- */
+  @media (max-width:600px){
+    .langs{top:14px;right:16px}
+    .stage{overflow:visible}
+    .track{
+      min-width:0;
+      width:10px;
+      height:min(62vh, 560px);
+      margin:8px auto 0;
+    }
+    .line{
+      left:50%;right:auto;top:0;bottom:0;
+      width:2px;height:auto;
+      margin-left:-1px;
+      transform-origin:center top;
+    }
+    @keyframes draw{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+    .line::after{          /* arrowhead points down, toward the present */
+      right:auto;top:auto;
+      bottom:0;left:50%;
+      border-top:none;border-right:none;
+      border-left:2px solid var(--ink);
+      border-bottom:2px solid var(--ink);
+      transform:translateX(-50%) rotate(-45deg);
+    }
+
+    .node{left:50%;top:var(--p)}
+
+    .node.above .stem,
+    .node.below .stem{
+      width:26px;height:1.5px;
+      top:-0.75px;
+    }
+    .node.above .stem{left:-34px}
+    .node.below .stem{left:8px}
+
+    .label{width:34vw}
+    .node.above .label,
+    .node.below .label{
+      top:0;bottom:auto;
+      transform:translateY(-50%);
+    }
+    .node.above .label{right:42px;left:auto;text-align:right}
+    .node.below .label{left:42px;right:auto;text-align:left}
+
+    .panel{
+      width:40vw;
+      max-width:200px;
+      padding:11px 13px;
+    }
+    .panel.top{
+      right:20px;left:auto;
+      top:-18px;bottom:auto;       /* top of the year/name box near the dot */
+      flex-direction:column;       /* image box below the year + name box */
+      align-items:stretch;
+      gap:9px;
+      transform:translateX(4px);
+    }
+    .tbox,.ibox{width:40vw;max-width:200px}
+    .tbox{padding:11px 13px}
+    .node.open .panel.top{transform:translateX(0)}
+    .panel.bottom{
+      left:20px;right:auto;
+      top:0;bottom:auto;
+      transform:translateY(-50%) translateX(-4px);
+    }
+    .node.open .panel.bottom{transform:translateY(-50%) translateX(0)}
+    .panel h3{font-size:14px}
+    .panel p{font-size:12px}
+  }

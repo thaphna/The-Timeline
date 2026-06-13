@@ -131,17 +131,17 @@ const MORE = { en: "Read more \u2192", zh: "阅读更多 \u2192", km: "អាន
    ============================================================ */
 const IMAGES = [
   "images/event1.webp",   // 1.  Kingdom of Funan
-  "images/event2.png",   // 2.  802 — Khmer Empire founded
-  "images/event3.png",   // 3.  1113–1150 — Angkor Wat is built
-  "images/event4.png",   // 4.  1181 — Jayavarman VII crowned
-  "images/event5.png",   // 5.  1431 — Fall of Angkor
-  "images/event6.png",   // 6.  1863 — French protectorate
-  "images/event7.png",   // 7.  1953 — Independence
-  "images/event8.png",   // 8.  1975 — Khmer Rouge takes power
-  "images/event9.png",   // 9.  1979 — Khmer Rouge overthrown
-  "images/event10.png",  // 10. 1993 — Monarchy restored
-  "images/event11.png",  // 11. 1999 — Joins ASEAN
-  "images/event12.png"   // 12. Today — Cambodia in 2026
+  "images/event3.jpg",    // 2.  802 — Khmer Empire founded
+  "images/event2.webp",   // 3.  1113–1150 — Angkor Wat is built
+  "images/event4.jpg",    // 4.  1181 — Jayavarman VII crowned
+  "images/event5.jpg",    // 5.  1431 — Fall of Angkor
+  "images/event6.jpg",    // 6.  1863 — French protectorate
+  "images/event7.jpg",    // 7.  1953 — Independence
+  "images/event8.webp",   // 8.  1975 — Khmer Rouge takes power
+  "images/event9.jpg",    // 9.  1979 — Khmer Rouge overthrown
+  "images/event10.jpg",   // 10. 1993 — Monarchy restored
+  "images/event11.jpg",   // 11. 1999 — Joins ASEAN
+  "images/event12.jpeg"   // 12. Today — Cambodia in 2026
 ];
 
 /* ============================================================
@@ -151,17 +151,17 @@ const IMAGES = [
    ============================================================ */
 const IMAGE_LINKS = [
   "https://wondersofcambodia.com/the-rise-and-fall-of-funan-southeast-asias-forgotten-maritime-kingdom/",   // 1.  Kingdom of Funan
-  "",   // 2.  802 — Khmer Empire founded
-  "",   // 3.  1113–1150 — Angkor Wat is built
-  "",   // 4.  1181 — Jayavarman VII crowned
-  "",   // 5.  1431 — Fall of Angkor
-  "",   // 6.  1863 — French protectorate
-  "",   // 7.  1953 — Independence
-  "",   // 8.  1975 — Khmer Rouge takes power
-  "",   // 9.  1979 — Khmer Rouge overthrown
-  "",   // 10. 1993 — Monarchy restored
-  "",   // 11. 1999 — Joins ASEAN
-  ""    // 12. Today — Cambodia in 2026
+  "https://www.library.gov.au/learn/digital-classroom/angkorkhmer-empire-802-1431/rise-angkor-and-khmer-empire",   // 2.  802 — Khmer Empire founded
+  "https://www.virtualangkor.com/powerplace",   // 3.  1113–1150 — Angkor Wat is built
+  "https://cambodianess.com/article/king-jayavarman-vii-the-great-builder-and-unifier-of-cambodia",   // 4.  1181 — Jayavarman VII crowned
+  "https://www.library.gov.au/learn/digital-classroom/angkorkhmer-empire-802-1431/decline-khmer-empire",   // 5.  1431 — Fall of Angkor
+  "https://wondersofcambodia.com/the-french-protectorate-of-cambodia-1863-1953-an-overview/",   // 6.  1863 — French protectorate
+  "https://www.britannica.com/place/Cambodia/Independence",   // 7.  1953 — Independence
+  "https://asiapacificcurriculum.ca/learning-module/rise-and-fall-khmer-rouge-regime",   // 8.  1975 — Khmer Rouge takes power
+  "https://www.khmertimeskh.com/501216255/the-44-years-of-victory-day-january-7-1979-2023-2/",   // 9.  1979 — Khmer Rouge overthrown
+  "https://www.ushmm.org/genocide-prevention/countries/cambodia/peace-and-monarchy-return",   // 10. 1993 — Monarchy restored
+  "https://www.mfaic.gov.kh/en/2021-04-01-cambodia-s-membership",   // 11. 1999 — Joins ASEAN
+  "https://bowergroupasia.com/cambodias-record-10-billion-budget-to-drive-economic-growth-and-modernization/"    // 12. Today — Cambodia in 2026
 ];
 
 function esc(s){
@@ -265,6 +265,8 @@ function findHit(clientX, clientY, slack){
   return hit;
 }
 stage.addEventListener('mousemove', e => {
+  // while an event is open, don't peek other dots on hover
+  if(track.querySelector('.node.open')){ clearPeek(); return; }
   const hit = findHit(e.clientX, e.clientY, 9);  // the cursor must be on the dot itself
   clearPeek();
   if(hit) hit.classList.add('peek');
